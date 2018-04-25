@@ -26,9 +26,9 @@ Object类常用做集合类中toArray的转化类型；
   * isEmpty(),size(),pollFirst(),pollLast():
   * arraydeque实现双端队列用了循环数组,存在tail<head的情况，要用&(elements.length-1)转正值
   * length必须是2的幂指数，当tail<head，取(tail-head)补码&(elements.length-1)可求得size
-  *	addLast()在tail=length-1的时候会扩容，"elements[tail] = e"可以执行   
-    
- &emsp;&ensp;ArrayList:  
+  *	addLast()在tail=length-1的时候会扩容，"elements[tail] = e"可以执行    
+      
+&emsp;&ensp;ArrayList:  
   *	动态数组，容量自动增长,类似于c语言动态内存申请。非线程安全，只能用于单线程，
   *	多线程通过Collection.synchronizedList(List l)返回一个线程安全的ArrayList类，或者使用concurrent并发包下的CopyOnWriteArrayList类。
   *	Serializable接口，支持序列化，能序列化传输；RandomAccess接口，支持通过下标序号的快速随机访问；Cloneable接口，能被克隆。

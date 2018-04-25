@@ -1,6 +1,6 @@
 4月22日周总结 (3分)  
 &emsp;&ensp;从11天前的Java引用到今天的学习内容做个总结，学习内容不是很多断了一次。  
-&emsp;&ensp;RedBlackTree -> Enum -> TreeMap -> IdentityHashMap -> WeakHashMap -> Volatile + JMM -> Synchronized -> Lock -> 并发集合 -> HashMap死循环 -> 并发队列 -> Asyn  
+&emsp;&ensp;RedBlackTree -> Enum -> TreeMap -> IdentityHashMap -> WeakHashMap -> Volatile + JMM -> Synchronized -> Threads Cooperation -> Lock -> 并发集合 -> HashMap死循环 -> 并发队列 -> Asynchronous  
 
 &emsp;&ensp;RedBlackTree
  * 红黑树是为了能保证O(logN)平衡二叉树(AVLTree)的实现，树中每个节点左边后代数目大致等于右边后代数目
@@ -71,7 +71,44 @@
  1.可重入性：在一个对象获取锁后可以直接调用这个保护对象内的其他同样需要锁的代码。(可重入是通过记录锁的持有线程和持有数量来实现)  每一个Synchronized都是一个锁？？   
  2.内存可见性：Synchronized不仅可以实现原子操作，避免竞态条件，还会保证内存可见性(释放锁的时候，所有写入都会写回到内存当中，获取锁后高速缓存会从内存读取最新数据)。volatile只能帮本就是原子操作的代码实现可见性。     
  3.死锁：两个线程均在持有一个锁的情况下去竞争对方所持有的锁。显式锁接口Lock的tryLock和带时间限制的锁获取可以避免死锁。
- * 同步容器
+ * 同步容器以及注意事项   
+ 1.符合操作，先检查再更新： EnhanceMap的putIfAbsent(),如果当前map中没有对应键执行添加。(多线程执行这一步的时候，都发现没有对应键都调用put(方法本身不会去查重)，达不到期望效果)     
+ 2.伪同步：对于符合操作，需要使用Synchronized实现安全，同步对象选择时应保持统一    
+ 3.迭代：容器内部使用迭代器迭代时，出现了容器结构的改变时触发fast-fail机制。避免异常应在遍历容器的时候给整个容器对象加锁。     
+ 4.并发容器(线程安全、没有使用Synchronized、无迭代问题、高性能、直接支持符合操作)！！     
+ CopyOnWriteArrayList ConcurrentHashMap ConcurrentLinkedQueue ConcurrentSkipListSet    
+    
+&emsp;&ensp;线程的基本协作机制(协作核心是共享变量和条件)   
+ * 协作场景(wait(将当前线程加入条件队列等待并阻塞)/notify(唤醒一个等待队列上的线程),等待队列包含一个锁的等待队列、一个用于线程间协作的条件等待队列)   
+ 1.生产者/消费者协作模式(有限缓冲问题)：有限长度队列，队满生产者等待，队空消费者等待   
+ ```
+ static class MyBlockingQueue<E>{
+        private Queue<E> queue = null;
+        private int limit; 
+        public MyBlockingQueue(int limit){
+        this.limit=limit;
+        queue=new ArrayDeque<>(limit);
+        }
+        //生产者添加资源使用
+    	public synchronized void  put(E e) throws InterruptedException{
+    		while (queue.size()==limit){
+    			wait();
+    		}
+    		queue.add(e);
+    		notifyAll();
+    	}
+    	//消费者消耗资源使用
+    	public synchronized E take() throws InterruptedException{
+    		while (queue.isEmpty()){
+    			wait();
+    		}
+    		E e=queue.poll();
+    		notifyAll();
+    		return e;
+    	}
+ }
+ ```  
+ 2.同时开始：多个线程
  
  
  
