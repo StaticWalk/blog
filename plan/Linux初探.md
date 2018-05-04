@@ -39,18 +39,37 @@
  &emsp;&ensp;locate(locate搜索文件名，反应快，查找内容在后台数据库/var/lib/mlocate ,updatedb强制更新数据库): locate [FileName]    
  &emsp;&ensp;whereis/which/whatis/whoami(查看指令，不能找文件)  -b只查找可执行文件  -m查找帮助文件          
  &emsp;&ensp;find(完全匹配，执行会遍历OS，-iname不区分大小写,condition包含 -mtime修改时间、-atime访问时间 、ctime属性改变时间 后缀+ - day或者-size后缀k M)find [area] [condition + limit]   
- &emsp;&ensp;grep(查找文件中的字符串,-v取不包含字符串，-i忽略大小写，包含匹配可正则：* 任意内容、? 一个字符、[]一个中括号内字符) grep "xxx"  [File]   
- &emsp;&ensp;man -f command查看帮助命令；apropos command = man -k command 查找类似关键字    
+ &emsp;&ensp;grep(查找文件中的字符串,-v取不包含字符串，-i忽略大小写，包含匹配可正则：* 任意内容、? 一个字符、[]一个中括号内字符) &emsp;&ensp;grep "xxx"  [File]   
+ &emsp;&ensp;man -f command查看帮助命令；apropos command = man -k command 查找类似关键字        
+ 9.压缩命令(.zip .gz .bz2 ; .tar.gz .tar.bz2 )  
+  &emsp;&ensp;1).zip [FileName] [SourceName] ,应写明目标文件的后缀名；unzip来解压.zip文件    
+  &emsp;&ensp;2).gzip [SourceFile] 解压后源文件会消失，-r压缩目录(目录下所有子文件会被压缩)，保留源文件方式 gzip -c [SourceFile] > [FileName] &emsp;&ensp;解压gzip -d [FileName] | gunzip [FileName]   
+  &emsp;&ensp;3).bzip2 [SourceFile] 不会保留源文件，-k会保留原文件，不能压缩目录 &emsp;&ensp;大致同gzip，-k保留源文件     
+  &emsp;&ensp;4).tar -cvf [FileName] [SourceName] -c打包，-v显示过程，-f指定打包后文件名，-x解压  .tar.gz(.zcvf压缩 .zxvf解压) .tar.gz(.jcvf压缩 .jxvf解压)  
+        
+  * Shell脚本   
+  ```
+#!/bin/bash
+
+#this is a program
+echo -e "\e[1;34m hello,xiongxiaoyu \e[0m"
+```
+  1.所有.sh文件开头是 #!/bin/bash
+  2.启动方式：
+ &emsp;&ensp;1)chomd 755 FileName.sh (chmod + 三位权限，读4、写2、执行1 )，给.sh文件赋予执行权限然后通过 ./FileName.sh执行    
+ &emsp;&ensp;2)bash FileName.sh  通过Bash调用执行脚本   
+    
+ * 实用快捷方式   
+ ctrl + c 强制停止命令    
+ ctrl + l 清空屏幕   
+ ctrl + a 将游标移动到行首   
+ ctrl + e 将光标移动到行尾
+ ctrl + u 删除光标以前的内容    
+ ctrl + z 命令后台运行    
+ ctrl + r 查找历史运行命令   
+ history [option] (查看历史使用过的命令，-w刷新到历史命令保存文件~/.bash_history)
  
  
  
- 
-     
-
-   
-
-
-
-   
    
 [//]:这是注释
