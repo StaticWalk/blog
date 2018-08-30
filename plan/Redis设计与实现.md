@@ -1,6 +1,8 @@
-##《Redis设计与实现》总结
+## 《Redis设计与实现》总结
   
-###目录
+### 目录
+
+ * [跳跃表](#数据结构与对象)
 
 * [数据结构与对象](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#数据结构与对象)
     * [简单动态字符串](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#简单动态字符串)
@@ -41,7 +43,8 @@
         * [对象空转时长](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#跳跃表)
         * [要点总结](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#跳跃表)
         * [跳跃表](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#123456)
+       
  
 
-##数据结构与对象
+## 数据结构与对象
  <a name="12345"/>
