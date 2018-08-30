@@ -2,8 +2,6 @@
   
 ### 目录
 
- * [跳跃表](#123456)
-
 * [数据结构与对象](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#数据结构与对象)
     * [简单动态字符串](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#简单动态字符串)
         * [SDS定义](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#SDS定义)
@@ -41,9 +39,28 @@
         * [内存回收](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#跳跃表)
         * [对象共享](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#跳跃表)
         * [对象空转时长](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#跳跃表)
-        * [要点总结](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#跳跃表)
-        * [跳跃表](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#123456)
-       
+        * [要点总结](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#跳跃表) 
+* [单机数据库](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#单机数据库)    
+    * [数据库](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#数据库)    
+        * [服务器中的数据库](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#服务器中的数据库)    
+        * [数据库键空间](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#数据库键空间)    
+        * [键过期和删除策略](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#键过期和删除策略)    
+        * [要点总结](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#键过期和删除策略)       
+    * [RDB持久化](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#RDB持久化)    
+        * [RDB文件的创建与载入](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#RDB文件的创建与载入)    
+        * [RDB文件结构](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#RDB文件结构)    
+        * [分析RDB文件](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#分析RDB文件)    
+        * [要点总结](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#分析RDB文件)    
+    * [AOF持久化](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#AOF持久化)    
+        * [AOF持久化的实现](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#AOF持久化的实现)    
+        * [AOF文件的载入与数据还原](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#AOF文件的载入与数据还原)    
+        * [AOF重写](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#AOF重写)    
+        * [要点总结](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#要点总结)    
+    * [事件](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#123456)    
+    * [跳跃表](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#123456)    
+    * [跳跃表](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#123456)    
+    * [跳跃表](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#123456)    
+    * [跳跃表](https://github.com/StaticWalk/blog/blob/master/plan/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0.md#123456)    
  
 
 ## 数据结构与对象
