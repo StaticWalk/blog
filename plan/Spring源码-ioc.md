@@ -60,21 +60,65 @@ AbstractApplicationContext.refresh()                                     ----bea
     parseDefaultElement/parseCustomElement                               ----解析默认/自定义标签
     NamespaceHandlerSupport.parse
     a)findParseForElement
-    b)ComponentScanBeanDefinitionParser.parse
+    b)ComponentScanBeanDefinitionParser.parse                            ----返回解析结果Set<BeanDefinitionHolder>然后注册组件
         1)ClassPathBeanDefinitionScanner.doScan                          ----解析注解定义的bean
             1.1）findCandidateComponents
-                1.1.1)PathMatchingResourcePatternResolver.getResources
-                    1.1.1.1)findPathMatchingResources
-                    1.1.1.1.1)doFindPathMatchingResources
-                    1.1.1.1.1.1)retrieveMatchingFiles
+                1.1.1)PathMatchingResourcePatternResolver.getResources   ----Resource[]
+                    1.1.1.1)findPathMatchingResources                    ----Resource[]
+                    1.1.1.1.1)doFindPathMatchingResources                ----Set<Resource>                
+                    1.1.1.1.1.1)retrieveMatchingFiles                    ----((Set(Resource)Set<File>)matchingFiles存放扫描到的.class文件
                     1.1.1.1.1.1.1)doRetrieveMatchingFiles                ----递归方法
                 1.1.2)CachingMetadataResourceFactory.getMetadataReader   ----读取class文件
                     1.1.2.1)SimpleMetadataReader.getMetadataReader
                 1.1.3)isCandiddateComponent
                     1.1.3.1)AbstractTypeHierarchyTraversingFilter.match
             1.2)registerBeanDefinition                                   ----将beanDefinition记录到BeanFactory
-                1.2.1)DefaultListableBeanFactory.registerBeanDefinition  ----保存beanDefinition        
-2)finishBeanFactoryInitialization                                        ----初始化非lazy-load且singleton的bean                        
+                1.2.1)DefaultListableBeanFactory.registerBeanDefinition  ----beanDefinitionMap.put(beanName,beanDefinition)        
+2)finishBeanFactoryInitialization                                        ----初始化非lazy-load且singleton的bean(会加载部分的bean)   
+  2.1)ConfigurableListableBeanFactory.preInstantiateSingletons           ----DefaultListableBeanFactory.preInstantiateSingletons,getBean()会缓存已经加载过、单例的bean 
+                                                                                      
+```
+###bean的加载   
+bean的加载是根据beanDefinition实例化bean的过程，可以认为getBean方法就是对bean的加载，getBean方法是缓存化的。finishBeanFactoryInitialization中的getBean的执行流程不同于main方法中applicationContext.getBean的执行流程。
+```angularjs
+FactoryBean                                                              ----用户定制
+ObjectFactory                                                            ----Spring使用
+AbstractBeanFactory.getBean
+doGetBean
+1)getSingleton(beanName)                                                 ----借助缓存或者singletonFactories
+2)getSingleton(beanName,ObjectFactory)                                   ----从头创建单例bean
+  2.1)beforeSingletonCreation                                            ----记录加载状态
+  2.2)afterSingletonCreation                                             ----清除加载状态
+  2.3)addSingleton                                                       ----结果记录至缓存
+3)createBean                                                             ----创建单例或者多例的bean
+  3.1)AbstractBeanDefinition.prepareMethodOverrides                      ----决定实例化策略->反射或者CGLIB
+    3.1.1)prepareMethodOverride
+  3.2)resolveBeforeInstantiation                                         ----可能会创建代理过的bean
+    3.2.1)applyBeanPostProcessorBeforeIntantiation                       ----实例化前的后处理器应用
+    3.2.2)applyBeanPostProcessorAfterIntantiation                        ----实例化后的后处理器应用
+  3.3)doCreateBean                                                       ----创建常规bean
+    3.3.1)createBeanInstance                                             ----实例化bean
+      3.3.1.1)instantiateUsingFactoryMethod                              ----工厂方法实例化
+      3.3.1.2)autowireContructor                                         ----有参数的构造方法实例化
+        3.3.1.2.1)InstantiationStrategy.instantiate                      ----
+      3.3.1.3)instantiateBean                                            ----无参数的构造方法的实例化
+    3.3.2)getEarlyBeanReference                                          ----
+    3.3.3)polulateBean                                                   ----
+      3.3.3.1)autowireByName                                             ----
+      3.3.3.2)autowireByType                                             ----
+        3.3.3.2.1)DefaultListableBeanFactory.resolveDependency           ----
+          3.3.3.2.1.1)doResolveDependency                                ----
+      3.3.3.3)applyPropertValues                                         ----
+    3.3.4)initializeBean                                                 ----调用init-method方法
+      3.3.4.1)invokeAwareMethods                                         ----
+      3.3.4.2)BeanPostProcessor                                          ----
+      3.3.4.3invokeInitMethods                                           ----激活自定义的init方法
+        3.3.4.1)invokeCustomInitMethod                                   ----
+    3.3.5)getSingleton(beanName,allowEarlyReference)                     ----
+    3.3.6)registerDisposableBeanIfNecessary                              ----注册DisposableBean
+4)getObjectForBeanInstance                                               ----从bean实例中获取对象
+  4.1)getObjectFromFactoryBean                                           ----从FactoryBean中解析bean
+    4.1.1)doGetObejectFromFactoeyBean                                    ----
 ```
 
 
