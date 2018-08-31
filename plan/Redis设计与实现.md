@@ -44,9 +44,8 @@
 * [单机数据库](#单机数据库)    
     * [数据库](#数据库)    
         * [服务器中的数据库](#服务器中的数据库)    
-        * [数据库键空间](#数据库键空间)    
-        * [键过期和删除策略](#键过期和删除策略)    
-        * [要点总结](#键过期和删除策略)       
+        * [键过期](#键过期)    
+        * [删除策略](#删除策略)          
     * [RDB持久化](#RDB持久化)    
         * [RDB文件的创建与载入](#RDB文件的创建与载入)    
         * [RDB文件结构](#RDB文件结构)    
@@ -300,21 +299,55 @@ typedef struct zskiplist{
     int level;
 }
 
-
 ```
- ![icon](https://github.com/StaticWalk/blog/blob/master/images/redis01.png?raw=true)
+ ![icon](https://github.com/StaticWalk/blog/blob/master/images/redis01.jpg?raw=true)
 
-* 要点总结
+* 要点总结  
+    * 跳跃表是有序集合的底层实现之一
+    * Redis跳跃表实现由zskiplist和zskiplistNode两个结构组成
+    * 同一跳跃表多个节点可以包含相同分值，但节点成员对象必须唯一
+    * 节点排序按照先分值再成员对象大小
+
 ###整数集合
 * 整数集合的实现
+```angularjs
+
+整数集合
+typedef struct intset{
+    
+    //编码方式属性值：INTSET_ENC_INT16、INTSET_ENC_INT32、INTSET_ENC_INT64 
+    uint32_t encoding;
+    
+    //集合包含的元素数量
+    uint32_t length;
+    
+    //保存元素的数组
+    int8_t contents[];
+    
+}intset;
+
+```
+
 * 升级
+当encoding类型为16位，length=3的整数集合要加入一个32位的整数时，此时整数集合就需要升级：
+    * 1)根据新的类型长度和新的集合元素数量，对底层数组进行空间重分配。
+    * 2)在扩充后的内存中，先添加需要加入的整数到96-127位
+    * 3)32-47位到64-95位、16-31位到32-63位、0-15位搭配0-31位
+    * 4)最后讲encoding属性改为INTSET_ENC_INT32
+
 * 降级
+    * 不支持
+    
 * 要点总结
+&emsp;&emsp;升级的好处是提升了整数集合的灵活性，另一个是尽可能得节约了空间
+
+
 ###压缩列表
 * 压缩列表的构成
 * 压缩列表节点的构成
 * 连锁更新
 * 要点总结
+
 ###对象
 * 对象的类型与编码
 * 字符串对象
@@ -327,16 +360,157 @@ typedef struct zskiplist{
 * 对象共享
 * 对象空转时长
 * 要点总结
+
+
+
 ##单机数据库
+
+
 ###数据库
 * 服务器中的数据库
-* 数据库键空间
-* 键过期和删除策略
-* 要点总结
+```angularjs
+
+struct redisServer{
+    
+    //数组保存服务器中所有数据库，通过select dbnum来切换目标数据库
+    redisDB *db;
+    
+    //数据库数目
+    int dbnum;
+}
+
+struct redisClient
+    
+    //慎用多数据库，除了-cli客户端都不会返回目标数据库号码
+    //通过select num来切换使用的数据库
+    redisDB *db;
+    
+}redisClient;
+
+
+typedef struct redisDB{
+    
+    //数据库键空间，保存所有数据库中键值对
+    dict *dict;//会看上面的dict是啥
+    
+    //过期字典保存键的过期时间
+    dict *expires;
+    
+    //两个字典指向相同的键对象，不会出现浪费空间的重复对象
+}redisDB:
+
+```
+
+* 键过期
+```angularjs
+
+EXPIRE/PEXPIRE key  5     ---设置键过期ms/s
+
+TIME             ---拿到当前系统UNIX时间戳
+
+EXPIREAT/PEXPIREAT key 13565648     ---到指定时间删除键ms/s
+
+PERSIST key      ---取消一个键的过期时间
+
+TTL key   ---按秒返回键的剩余生存时间
+
+PTTL key     ---按毫秒返回键的剩余生存时间
+
+`````
+* 删除策略
+    * 定时删除：使用定时器定时删除，CPU时间不友好；redis自身不是很好支持时间事件   
+    * 惰性删除：取出键的时候才进行过期检验，内存不友好   
+    * 定期删除：定时删除 + 惰性删除，要控制好频率和时长  
+
 ###RDB持久化
-* RDB文件的创建与载入
+* RDB文件的创建与载入   
+Redis是内存数据库，在服务器进程退出之后，需要对服务器中的数据库状态进行持久化。    
+RDB文件是压缩过的二进制文件，Redis也可以通过这个文件还原数据库状态。
+AOF文件更新频率高于RDB文件，服务器在两种持久化方式都开启时会优先工作前者。
+```angularjs
+
+生成RDB文件的两个方法
+
+def SAVE():{
+    
+     #创建RDB文件
+     rdbSave()
+     
+}
+
+
+def BGSAVE():{
+
+    #创建子进程
+    pid = fork()
+    
+    if pid == 0:
+    
+        #子进程创建RDB文件
+        rdbSave()
+        #完成后发送信号给父进程
+        singal_parent()
+        
+    else if  pid > 0:
+        #夫进程继续处理命令，并轮询等待子进程的信号
+        handle_request_and_wait_singnal()
+        
+    else:        
+        #处理错误
+        handle_fork_erroe()
+
+}
+
+#自动间隔性保存
+save 900 1   ---设置BGSAVE的频率，900秒内save1次
+
+```
+   
 * RDB文件结构
+```angularjs
+
+#1固定大写开头字符串 2版本号 3按照数据库分别存放 4结束符号 5校验和
+REDIS | db_version | databases |  EOF  | check_sum
+      |   4byte    | db0 | db3 | 1byte |  8byte
+      
+databases部分：
+1固定字符串 2数据库号 3键值对(8种类型)
+SELECTDB | db_number | key_value_paris  
+         |           | TYPE|key|value  /   EXPIRETIME_MS|ms|TYPE|key|value 
+
+对value编码的细节自己去看书吧，太难COPY了！
+```
 * 分析RDB文件
+```angularjs
+
+
+127.0.0.1:6379> flushall
+OK
+127.0.0.1:6379> setex msg 10086 "hello"
+OK
+127.0.0.1:6379> save
+OK
+
+#退出-cli在bin目录下查看rdb文件
+[root@VM_77_51_centos bin]# od -c dump.rdb
+0000000   R   E   D   I   S   0   0   0   8 372  \t   r   e   d   i   s
+0000020   -   v   e   r 005   4   .   0   .   2 372  \n   r   e   d   i
+0000040   s   -   b   i   t   s 300   @ 372 005   c   t   i   m   e 302
+0000060   *   [   ?   [ 372  \b   u   s   e   d   -   m   e   m 302   (
+0000100 256  \v  \0 372 016   r   e   p   l   -   s   t   r   e   a   m
+0000120   -   d   b 300 377 372  \a   r   e   p   l   -   i   d   (   f
+0000140   1   5   9   1   9   1   7   3   0   b   8   b   3   e   f   b
+0000160   f   a   b   c   5   7   4   d   2   4   a   4   4   a   4   7
+0000200   c   8   6   c   f   3   2 372  \v   r   e   p   l   -   o   f
+0000220   f   s   e   t 300  \0 372  \f   a   o   f   -   p   r   e   a
+0000240   m   b   l   e 300  \0 377   E   \ 231   ,   c 244   B 275
+0000257
+
+
+```
+
+
+
 * 要点总结
 ###AOF持久化
 * AOF持久化的实现
