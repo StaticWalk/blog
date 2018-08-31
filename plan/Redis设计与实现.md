@@ -14,6 +14,7 @@
         * [字典的实现](#字典的实现)
         * [哈希算法](#哈希算法)
         * [哈希冲突](#哈希冲突)
+        * [rehash/渐进式rehash](#rehash/渐进式rehash)
         * [要点总结](#哈希冲突)
     * [跳跃表](#跳跃表)
         * [跳跃表的实现](#跳跃表的实现)
@@ -97,4 +98,287 @@
         * [要点总结](#复制与故障转移)    
   
 
-## 数据结构与对象
+##数据结构与对象
+###简单动态字符串
+* SDS定义
+Redis基于C语言，但没有使用C语言传统字符串('\0'为结尾)，使用简单动态字符串(simple dynamic string)为默认字符串表示。   
+除了保存数据库中字符串值外，还被用做缓冲区：AOF持久化中的缓冲区和客户端状态的输入缓冲区。
+```angularjs
+struct sdshdr{
+    
+    //记录buf数组中已经使用的数量
+    //SDS字符串保存的字符串的长度
+    int len;
+    
+    //记录buf数组中未使用的数量
+    int free;
+    
+    //字节数组，保存字符串
+    char buf[];
+    
+}
+```
+* SDS和C字符串的区别   
+    * len属性，常数复杂度获取字符串长度
+    * SDS记录自身长度，空间分配策略能杜绝缓冲区溢出
+    * 修改字符串长度N次最多需要执行N次内存重分配
+        * 空间预分配：afterModLen > 1M ? afterModLen+1M+1byte : 2*afterModLen+1byte
+        * 惰性空间释放：不会主动回收用free记录SDS缩短后多余的空字节，需要手动回收
+    * 二进制安全(可以保存文本或者二进制数据)，SDS使用len属性的值而非操控字符串来判断结束
+
+* 要点总结   
+SDS更灵活，优点除开后面的aof和client的缓冲区，对比C语言字符串见上
+
+###链表
+
+* 链表与链表节点的实现
+```angularjs
+
+typedef struct listNode{
+    
+    //前置节点
+    struct listNode *prev;
+    
+    //后置节点
+    struct listNode *next;
+    
+    //节点的值
+    void *value;
+    
+}listNode;
+
+typedef struct list{
+    
+    //表头节点
+    listNode *head;
+    
+    //表尾节点
+    listNode *tail;
+    
+    //链表所包含的节点数量
+    unsigned long len;
+    
+    //节点值复制函数
+    void *(*dup) (void *ptr)
+    
+    //节点值释放函数
+    void *(*free) (void *ptr)
+    
+    //节点值对比函数
+    void *(*match) (void *ptr,void *key)
+
+}list;
+  
+```   
+
+&emsp;&emsp;双端：链表带有头尾指针，获取某个节点的前后节点复杂度O(1)   
+&emsp;&emsp;无环：表头节点*prev和表尾节点*next指向NULL，链表访问时NULL为终点   
+&emsp;&emsp;带表头和表尾指针   
+&emsp;&emsp;带链表长度计数器 list.len   
+&emsp;&emsp;多态：value * 保存值，可以指定数据类型   
+
+* 要点总结    
+链表的使用范围在列表键、发布与订阅、慢查询、监视器。
+
+###字典
+
+* 字典的实现
+
+```angularjs
+
+字典的实现hashtable
+typedef struct dictht{
+    
+    //哈希表数组
+    dictEntry **table;
+    
+    //哈希表大小
+    unsigned long size;
+    
+    //哈希表大小掩码=size-1，用于计算索引值
+    unsigned long sizemark;
+    
+    //该哈希表已有节点数
+    unsigned long used;
+    
+}dictht;
+
+字典节点
+typedef struct dictEntry{
+    
+    //键
+    void *key;
+   
+    //值
+    void *union{
+        void *val;
+        uint64_tu64;
+        ini64_ts64;
+    }v;
+    
+    //指向下一个哈希节点，形成链表来解决hash冲突
+    struct dictEntry *next;
+    
+}dictEntry;
+
+字典
+typedef struct dict{
+    
+    //类型特定函数
+    dictType *type;
+    
+    //私有数据
+    void *privdata;
+    
+    //哈希表
+    dictht ht[3];
+    
+    //rehash索引
+    //当rehash不进行时，值为-1
+    int rehashidx;
+    
+}
+
+```
+
+* 哈希算法    
+index = hash&dict->ht[0].sizemask    
+     
+* 哈希冲突   
+链地址法，就是常说的链表数组(hashmap采用了这个方式并采取了红黑树优化)     
+再哈希法，将得到的index再次计算得到新值
+
+* rehash/渐进式rehash    
+当哈希表保存的键值对增多，为了控制loadFactory，程序需要对哈希表大小进行调整    
+对哈希表ht\[0]进行rehash步骤：
+    * 1)新建一个哈希表并分配空间，大小取决于ht\[0].used
+        * 扩展操作：ht[1].size是大于ht\[0].used*2的最小二次幂
+        * 收缩操作：ht[1].size是大于ht\[0].used的最小二次幂
+    * 2)将保存在ht\[0]中的所有键值对重新计算索引rehash到ht\[1]上
+    * 3)在所有ht\[0]键值对迁移到ht\[1]后，释放ht\[0]，将ht\[1]设置为ht\[0]  
+      
+&emsp;&emsp;渐进式rehash让字典同时持有ht\[0]和ht\[]，通过rehashidx来记录rehash的进行，rehash完成之后置-1
+* 要点总结   
+&emsp;&emsp;在渐进式rehash中的CRUD进行在两个哈希表上面的，执行期间新加的数据会被直接加到ht\[1]中。
+
+###跳跃表
+* 跳跃表的实现
+```angularjs
+
+typedef struct zskiplistNode{
+    
+    //层()
+    struct zskiplistLevel{
+        
+        //前进指针,指向表尾用于从表头节点向表尾节点方向访问节点
+        struct zskiplistNode *forward;
+        
+        //跨度(如果指向NULL，跨度为0)
+        unsigned int span;
+    }level[];//数组大小(1-32)随机生成
+    
+    //后退指针
+    struct zskiplistNode *backforwd;
+    
+    //分值
+    double score;
+    
+    //成员对象
+    robj *obj;
+ 
+}zskiplistNode;
+
+typedef struct zskiplist{
+    
+    //表头节点和表尾节点
+    struct zskiplistNode *header, *tail;
+    
+    //表中节点的数量
+    unsigned long length;
+    
+    //表中层数最大的节点的层数
+    int level;
+}
+
+
+```
+ ![icon](https://github.com/StaticWalk/blog/blob/master/images/redis01.png?raw=true)
+
+* 要点总结
+###整数集合
+* 整数集合的实现
+* 升级
+* 降级
+* 要点总结
+###压缩列表
+* 压缩列表的构成
+* 压缩列表节点的构成
+* 连锁更新
+* 要点总结
+###对象
+* 对象的类型与编码
+* 字符串对象
+* 列表对象
+* 哈希对象
+* 集合对象
+* 有序集合对象
+* 类型检查与命令多态
+* 内存回收
+* 对象共享
+* 对象空转时长
+* 要点总结
+##单机数据库
+###数据库
+* 服务器中的数据库
+* 数据库键空间
+* 键过期和删除策略
+* 要点总结
+###RDB持久化
+* RDB文件的创建与载入
+* RDB文件结构
+* 分析RDB文件
+* 要点总结
+###AOF持久化
+* AOF持久化的实现
+* AOF文件的载入与数据还原
+* AOF重写
+* 要点总结
+###事件
+* 文件事件
+* 时间事件
+* 事件的调度和执行
+* 要点总结
+###客户端
+* 客户端属性
+* 客户端的创建和关闭
+* 要点总结
+###服务器
+* 命令请求过程
+* serverCron函数
+* 初始化服务器
+* 要点总结
+##多级数据库的实现
+###复制
+* 旧版复制功能
+* 新版复制功能
+* 部分重同步的实现
+* PSYNC命令和复制
+* 心跳检查
+* 要点总结
+###Sentinel
+* 启动并初始化Sentinel
+* 获取主从服务器信息
+* 向主从服务器发送信息
+* 接收主从服务器的频道信息
+* 检测主观下线状态
+* 检查客观下线状态
+* 选举领头Sentinel
+* 故障转移
+* 要点总结
+###集群
+* 节点和槽指派
+* 集群执行命令
+* 重新分片
+* ASK错误
+* 复制与故障转移
+* 要点总结
