@@ -520,20 +520,68 @@ OK
 #### AOF文件的载入与数据还原
 #### AOF重写
 #### 要点总结
+
 ### 事件
 #### 文件事件
 #### 时间事件
 #### 事件的调度和执行
 #### 要点总结
+
 ### 客户端
 #### 客户端属性
 #### 客户端的创建和关闭
 #### 要点总结
+
 ### 服务器
 #### 命令请求过程
+```angularjs
+
+struct redisServer{
+    
+    //AOF缓冲区
+    sds aof_buf;
+    
+}
+
+AOF重写伪代码：
+
+def aof_rewrite(new_aof_file_name):{
+    
+    
+    f = create_file(new_aof_file_name)
+    
+    for db in redisServer.db
+        
+        if db.is_empty():continue
+        
+        f.write_commmand("SELECT0"+db.id)
+        
+            for key in db:
+            
+                if key.is_expired() : continue
+                
+                if key.type == String:
+                    rewrite_string(key) 
+                elif key.type == List:
+                    rewrite_list(key) 
+                elif key.type == Hash:
+                    rewrite_hash(key)                        
+                elif key.type == Set:
+                    rewrite_set(key)     
+                elif key.type == SortedSet:
+                    rewrite_sorted_set(key)       
+    
+}
+
+
+
+```
+
 #### serverCron函数
 #### 初始化服务器
 #### 要点总结
+
+
 ##多级数据库的实现
 ### 复制
 #### 旧版复制功能
@@ -541,7 +589,13 @@ OK
 #### 部分重同步的实现
 #### PSYNC命令和复制
 #### 心跳检查
-#### 要点总结
+#### 要点总结   
+* Redis2.8以前的复制功能不能搞笑处理短线重复制问题，版本后引入了重同步功能可以解决这个问题
+* 部分重同步通过复制偏移量、复制挤压缓存区、服务器运行ID三部分实现
+* 复制操作刚开始时，从服务器会成为主服务器的客户端，向主服务器请求执行复制操作，复制后期，主从服务器互成对方的客户端
+* 主想从传播命令来更新从服务器的状态，从要向主发送命令进行心跳检测和命令丢失检测
+
+
 ### Sentinel
 #### 启动并初始化Sentinel
 #### 获取主从服务器信息
