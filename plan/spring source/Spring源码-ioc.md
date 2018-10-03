@@ -1,5 +1,6 @@
 参考博客 https://blog.csdn.net/songxinjianqwe/article/details/78824851
 
+调试Demo，github：https://github.com/StaticWalk/spring-framework-4.3.0/tree/master/spring-demo/src/main/java/com/xxy/ioc
 IoC(Inversion of Control)控制反转，在最初的java对象之间的引用需要对象主动去绑定去控制其他对象为自己用，现在由
 spring通过IoC容器BeanFactory来控制对象的生命周期和对象之间的关系，IoC是运行在系统中通过DI(依赖注入)动态向某个对象
 提供所需的对象。    
@@ -66,16 +67,16 @@ AbstractApplicationContext.refresh()                                     ----bea
     b)ComponentScanBeanDefinitionParser.parse                            ----返回解析结果Set<BeanDefinitionHolder>然后注册组件
         1)ClassPathBeanDefinitionScanner.doScan                          ----解析注解定义的bean将其转为beanDefinition
             1.1）findCandidateComponents                                 ----doScan1找到所有需要管理的bean对应的beanDefinitions
-                1.1.1)PathMatchingResourcePatternResolver.getResources   ----未筛选拿到所有的class文件
+                1.1.1)PathMatchingResourcePatternResolver.getResources   ----未筛选拿到所有的class文件并抽象为Resource文件
                     1.1.1.1)findPathMatchingResources                    ----Resource[]
                     1.1.1.1.1)doFindPathMatchingResources                ----Set<Resource>                
                     1.1.1.1.1.1)retrieveMatchingFiles                    ----((Set(Resource)Set<File>)matchingFiles存放扫描到的.class文件
                     1.1.1.1.1.1.1)doRetrieveMatchingFiles                ----递归方法
-                1.1.2)CachingMetadataResourceFactory.getMetadataReader   ----读取class文件
-                    1.1.2.1)SimpleMetadataReader.getMetadataReader       ----
-                1.1.3)isCandiddateComponent
+                1.1.2)CachingMetadataResourceFactory.getMetadataReader   ----读取所有刚刚拿到的class文件
+                    1.1.2.1)SimpleMetadataReader.getMetadataReader       ----Metadata元数据
+                1.1.3)isCandiddateComponent                              ----判断class文件是否是注册在Spring中的bean类型
                     1.1.3.1)AbstractTypeHierarchyTraversingFilter.match
-            1.2)registerBeanDefinition                                   ----doScan将beanDefinition注册记录到BeanFactory
+            1.2)registerBeanDefinition                                   ----doScan2将beanDefinition注册记录到BeanFactory
                 1.2.1)DefaultListableBeanFactory.registerBeanDefinition  ----beanDefinitionMap.put(beanName,beanDefinition)        
 2)finishBeanFactoryInitialization                                        ----初始化非lazy-load且singleton的bean(会加载部分的bean)   
   2.1)ConfigurableListableBeanFactory.preInstantiateSingletons           ----DefaultListableBeanFactory.preInstantiateSingletons,getBean()会缓存已经加载过、单例的bean，AbstracBeanFactory中的mergedBeanDefinitions存放缓存合并过的beanDefinition
@@ -123,6 +124,19 @@ doGetBean
   4.1)getObjectFromFactoryBean                                           ----从FactoryBean中解析bean
     4.1.1)doGetObejectFromFactoeyBean                                    ----
 ```
+
+总结：ioc中的bean操作分两步，bean注册 -> bean加载，beanFactory作为bean的全程孵化中心，需要了解下工厂模式（是什么为什么怎么）    
+bean的注册：   
+1. 解析XML文件(XML -> Resource -> InputStream -> Document)注册BeanDefinition    
+2. 解析文件中的标签分默认标签/自定义标签,(1.通过BeanDefinitionUri找到Hander/Class,2.从叫parses的解析Map找出解析器)    
+3. 通过doScan()1找到所有需要管理的bean对应的beanDefinitions(1.递归拿到包下所有的class文件并抽象为Resource ，2.读取所有的class文件,3.逐个判断是否是需要的bean)，doScan2将beanDefinition注册记录到BeanFactory：DefaultListableBeanFactory.registerBeanDefinition --beanDefinitionMap.put(beanName,beanDefinition)     
+4. 在后面的finishBeanFactoryInitialization会部分实例化Bean:通过getBean()方法初始化非lazy-load的singleton的bean，它能达到bean进行加载并缓存。    
+
+bean的加载：   
+
+
+
+
 
 
 
