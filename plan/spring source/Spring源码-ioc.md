@@ -4,6 +4,9 @@ IoC(Inversion of Control)控制反转，在最初的java对象之间的引用需
 spring通过IoC容器BeanFactory来控制对象的生命周期和对象之间的关系，IoC是运行在系统中通过DI(依赖注入)动态向某个对象
 提供所需的对象。    
 spring的两种容器：BeanFactory ApplicationContext(BeanFactory子类，更高级的容器实现)，底层实现是一个Map   
+
+Bean的实例化 -> Bean的
+
 ###实例
 ```angularjs
 public class Main {
@@ -45,34 +48,34 @@ applicationContext.xml
 </beans>
 ```
 ###Bean的注册   
-```angularjs
+```angularjs  delegate代表
 AbstractApplicationContext.refresh()                                     ----bean注册
  1)obtainFreshBeanFactory                                                ----创建beanFactory，解析XML
  1.1)refreshBeanFactory
- 1.1.1)loadBeanDefinitions(beanFactory)                                  ----创建reader
+ 1.1.1)loadBeanDefinitions(beanFactory)                                  ----创建reader  XmlBeanDefinitionReader for the given BeanFactory
  1.1.1.1)loadBeanDefinitions(beandefinitionReader)                       ----调用reader的load
  1.1.1.1.1)XmlBeanDefinitionReader.loadBeanDefinitions                   ----解析标签
-    doLoadBeanDefinitions
+    doLoadBeanDefinitions                       
     registerBeanDefinitions
-    documentReader.registerBeanDefinitions
-    doRegisterBeanDefinitions
-    parseBeanDefinitions
-    parseDefaultElement/parseCustomElement                               ----解析默认/自定义标签
-    NamespaceHandlerSupport.parse
-    a)findParseForElement
+    documentReader.registerBeanDefinitions                               ----实现类是DefaultBeanDefinitionDocumentReader
+    doRegisterBeanDefinitions(Element root)                              ----注册BeanDefinition
+    parseBeanDefinitions(root,this.delegate)                             ----解析标签，会将默认标签和自定义标签分开解析
+    parseDefaultElement/parseCustomElement                               ----解析默认/自定义标签，else的deletgate是NamespaceHandlerSupport类型
+    NamespaceHandlerSupport.parse                                        ----选择
+    a)findParseForElement(element, parserContext).parse(element, parserContext)
     b)ComponentScanBeanDefinitionParser.parse                            ----返回解析结果Set<BeanDefinitionHolder>然后注册组件
-        1)ClassPathBeanDefinitionScanner.doScan                          ----解析注解定义的bean
-            1.1）findCandidateComponents
-                1.1.1)PathMatchingResourcePatternResolver.getResources   ----Resource[]
+        1)ClassPathBeanDefinitionScanner.doScan                          ----解析注解定义的bean将其转为beanDefinition
+            1.1）findCandidateComponents                                 ----doScan1找到所有需要管理的bean对应的beanDefinitions
+                1.1.1)PathMatchingResourcePatternResolver.getResources   ----未筛选拿到所有的class文件
                     1.1.1.1)findPathMatchingResources                    ----Resource[]
                     1.1.1.1.1)doFindPathMatchingResources                ----Set<Resource>                
                     1.1.1.1.1.1)retrieveMatchingFiles                    ----((Set(Resource)Set<File>)matchingFiles存放扫描到的.class文件
                     1.1.1.1.1.1.1)doRetrieveMatchingFiles                ----递归方法
                 1.1.2)CachingMetadataResourceFactory.getMetadataReader   ----读取class文件
-                    1.1.2.1)SimpleMetadataReader.getMetadataReader
+                    1.1.2.1)SimpleMetadataReader.getMetadataReader       ----
                 1.1.3)isCandiddateComponent
                     1.1.3.1)AbstractTypeHierarchyTraversingFilter.match
-            1.2)registerBeanDefinition                                   ----将beanDefinition记录到BeanFactory
+            1.2)registerBeanDefinition                                   ----doScan将beanDefinition注册记录到BeanFactory
                 1.2.1)DefaultListableBeanFactory.registerBeanDefinition  ----beanDefinitionMap.put(beanName,beanDefinition)        
 2)finishBeanFactoryInitialization                                        ----初始化非lazy-load且singleton的bean(会加载部分的bean)   
   2.1)ConfigurableListableBeanFactory.preInstantiateSingletons           ----DefaultListableBeanFactory.preInstantiateSingletons,getBean()会缓存已经加载过、单例的bean，AbstracBeanFactory中的mergedBeanDefinitions存放缓存合并过的beanDefinition
