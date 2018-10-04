@@ -1,6 +1,6 @@
 参考博客 https://blog.csdn.net/songxinjianqwe/article/details/78824851
 
-调试Demo，github：https://github.com/StaticWalk/spring-framework-4.3.0/tree/master/spring-demo/src/main/java/com/xxy/ioc
+调试Demo，github：https://github.com/StaticWalk/spring-framework-4.3.0/tree/master/spring-demo/src/main/java/com/xxy/ioc    
 IoC(Inversion of Control)控制反转，在最初的java对象之间的引用需要对象主动去绑定去控制其他对象为自己用，现在由
 spring通过IoC容器BeanFactory来控制对象的生命周期和对象之间的关系，IoC是运行在系统中通过DI(依赖注入)动态向某个对象
 提供所需的对象。    
@@ -8,7 +8,7 @@ spring的两种容器：BeanFactory ApplicationContext(BeanFactory子类，更�
 
 Bean的实例化 -> Bean的
 
-###实例
+### 实例
 ```angularjs
 public class Main {
     public static void main(String[] args) {
@@ -48,7 +48,7 @@ applicationContext.xml
                     "cn.sinjinsong.ioc"/>
 </beans>
 ```
-###Bean的注册   
+### Bean的注册   
 ```angularjs  delegate代表
 AbstractApplicationContext.refresh()                                     ----bean注册
  1)obtainFreshBeanFactory                                                ----创建beanFactory，解析XML
@@ -82,8 +82,42 @@ AbstractApplicationContext.refresh()                                     ----bea
   2.1)ConfigurableListableBeanFactory.preInstantiateSingletons           ----DefaultListableBeanFactory.preInstantiateSingletons,getBean()会缓存已经加载过、单例的bean，AbstracBeanFactory中的mergedBeanDefinitions存放缓存合并过的beanDefinition
                                                                                       
 ```
-###bean的加载   
-bean的加载是根据beanDefinition实例化bean的过程，可以认为getBean方法就是对bean的加载，getBean方法是缓存化的。finishBeanFactoryInitialization中的getBean的执行流程不同于main方法中applicationContext.getBean的执行流程。
+### bean的加载   
+bean的加载是根据beanDefinition实例化bean的过程，可以认为getBean方法就是对bean的加载，getBean方法是缓存化的。bean注册里finishBeanFactoryInitialization中的getBean的执行流程不同于main方法中applicationContext.getBean的执行流程。   
+Spring通过反射机制利用bean的class属性指定实现类来实例化bean。   
+Spring提供了一个FactoryBean的工厂类接口，用户可以通过实现该接口定制实例化bean的逻辑。    
+```angularjs
+//FactoryBean用户定制
+public interface FactoryBean<T> {
+// 返回bean示例，如果isSingleton()返回true，那么该实例会放到Spring容器中单例缓存池中
+   T getObject() throws Exception;
+   Class<?> getObjectType();
+   boolean isSingleton();
+}
+
+//ObjectFactor的Spring使用
+public interface ObjectFactory<T> {
+   T getObject() throws BeansException;
+}
+
+FactoryBean： 
+  这个接口使你可以提供一个复杂的逻辑来生成Bean。它本质是一个Bean，但这个Bean不是用来注入到其它地方
+像Service、Dao一样使用的，它是用来生成其它Bean使用的。实现了这个接口后，Spring在容器初始化时，把
+实现这个接口的Bean取出来，使用接口的getObject()方法来生成我们要想的Bean。当然，那些生成Bean的业务
+逻辑也要写getObject()方法中。 
+ObjectFactory： 
+  它的目的也是作为一个工厂，来生成Object（这个接口只有一个方法getObject()）。这个接口一般被用来，包
+装一个factory，通过个这工厂来返回一个新实例（prototype类型）。这个接口和FactoryBean有点像，
+但FactoryBean的实现是被当做一个SPI（Service Provider Interface）实例来使用在BeanFactory里面；
+ObjectFactory的实现一般被用来注入到其它Bean中，作为API来使用。就像ObjectFactoryCreatingFactoryBean
+的例子，它的返回值就是一个ObjectFactory，这个ObjectFactory被注入到了Bean中，在Bean通过这个接口的实例，
+来取得我们想要的Bean。 
+  总的来说，FactoryBean和ObjectFactory都是用来取得Bean，但使用的方法和地方不同，FactoryBean被配置好
+后，Spring调用getObject()方法来取得Bean，ObjectFactory配置好后，在Bean里面可以取得ObjectFactory实例
+，需要我们手动来调用getObject()来取得Bean。
+
+```
+
 ```angularjs
 FactoryBean                                                              ----用户定制
 ObjectFactory                                                            ----Spring使用
@@ -106,13 +140,13 @@ doGetBean
       3.3.1.2)autowireContructor                                         ----有参数的构造方法实例化
         3.3.1.2.1)InstantiationStrategy.instantiate                      ----
       3.3.1.3)instantiateBean                                            ----无参数的构造方法的实例化
-    3.3.2)getEarlyBeanReference                                          ----
-    3.3.3)polulateBean                                                   ----
-      3.3.3.1)autowireByName                                             ----
-      3.3.3.2)autowireByType                                             ----
-        3.3.3.2.1)DefaultListableBeanFactory.resolveDependency           ----
+    3.3.2)getEarlyBeanReference                                          ----应用后处理器
+    3.3.3)polulateBean                                                   ----属性值注入
+      3.3.3.1)autowireByName                                             ----按名获取待注入属性
+      3.3.3.2)autowireByType                                             ----按类型获取待注入属性
+        3.3.3.2.1)DefaultListableBeanFactory.resolveDependency           ----寻找类型匹配
           3.3.3.2.1.1)doResolveDependency                                ----
-      3.3.3.3)applyPropertValues                                         ----
+      3.3.3.3)applyPropertValues                                         ----注入属性值
     3.3.4)initializeBean                                                 ----调用init-method方法
       3.3.4.1)invokeAwareMethods                                         ----
       3.3.4.2)BeanPostProcessor                                          ----
@@ -125,7 +159,7 @@ doGetBean
     4.1.1)doGetObejectFromFactoeyBean                                    ----
 ```
 
-总结：ioc中的bean操作分两步，bean注册 -> bean加载，beanFactory作为bean的全程孵化中心，需要了解下工厂模式（是什么为什么怎么）    
+总结：ioc中的bean操作分两步，bean注册 -> bean加载，beanFactory全程作为bean的孵化中心，需要了解下工厂模式（是什么为什么怎么）    
 bean的注册：   
 1. 解析XML文件(XML -> Resource -> InputStream -> Document)注册BeanDefinition    
 2. 解析文件中的标签分默认标签/自定义标签,(1.通过BeanDefinitionUri找到Hander/Class,2.从叫parses的解析Map找出解析器)    
