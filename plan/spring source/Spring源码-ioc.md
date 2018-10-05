@@ -124,19 +124,21 @@ ObjectFactory                                                            ----Spr
 AbstractBeanFactory.getBean
 doGetBean
 1)getSingleton(beanName)                                                 ----借助缓存或者singletonFactories
-2)getSingleton(beanName,ObjectFactory)                                   ----从头创建单例bean
+2)getSingleton(beanName,ObjectFactory)                                   ----从头创建单例bean(通过ObjectFactory的Object实例化bean)
   2.1)beforeSingletonCreation                                            ----记录加载状态
-  2.2)afterSingletonCreation                                             ----清除加载状态
+  2.2)afterSingletonCreation                                             ----清除辅助加载状态
   2.3)addSingleton                                                       ----结果记录至缓存
 3)createBean                                                             ----创建单例或者多例的bean
   3.1)AbstractBeanDefinition.prepareMethodOverrides                      ----决定实例化策略->反射或者CGLIB
     3.1.1)prepareMethodOverride
-  3.2)resolveBeforeInstantiation                                         ----可能会创建代理过的bean
-    3.2.1)applyBeanPostProcessorBeforeIntantiation                       ----实例化前的后处理器应用
-    3.2.2)applyBeanPostProcessorAfterIntantiation                        ----实例化后的后处理器应用
+  3.2)resolveBeforeInstantiation                                         ----避免创建已经代理过的bean
+    3.2.1)applyBeanPostProcessorBeforeIntantiation                       ----实例化前的后置处理器应用
+    3.2.2)applyBeanPostProcessorAfterIntantiation                      
+                    ----实例化后的后置处理器应用，在bean的初始化后尽可能保证将注册的后处理器的postProcessAfterInitialization方法应用
+                    到该bean中，如果返回的bean不为空，那么不再经历普通bean的创建过程。 
   3.3)doCreateBean                                                       ----创建常规bean
     3.3.1)createBeanInstance                                             ----实例化bean
-      3.3.1.1)instantiateUsingFactoryMethod                              ----工厂方法实例化
+      3.3.1.1)instantiateUsingFactoryMethod                              ----调用工厂方法实例化
       3.3.1.2)autowireContructor                                         ----有参数的构造方法实例化
         3.3.1.2.1)InstantiationStrategy.instantiate                      ----
       3.3.1.3)instantiateBean                                            ----无参数的构造方法的实例化
@@ -167,6 +169,7 @@ bean的注册：
 4. 在后面的finishBeanFactoryInitialization会部分实例化Bean:通过getBean()方法初始化非lazy-load的singleton的bean，它能达到bean进行加载并缓存。    
 
 bean的加载：   
+
 
 
 
