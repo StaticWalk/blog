@@ -79,7 +79,9 @@ AbstractApplicationContext.refresh()                                     ----bea
             1.2)registerBeanDefinition                                   ----doScan2将beanDefinition注册记录到BeanFactory
                 1.2.1)DefaultListableBeanFactory.registerBeanDefinition  ----beanDefinitionMap.put(beanName,beanDefinition)        
 2)finishBeanFactoryInitialization                                        ----初始化非lazy-load且singleton的bean(会加载部分的bean)   
-  2.1)ConfigurableListableBeanFactory.preInstantiateSingletons           ----DefaultListableBeanFactory.preInstantiateSingletons,getBean()会缓存已经加载过、单例的bean，AbstracBeanFactory中的mergedBeanDefinitions存放缓存合并过的beanDefinition
+  2.1)ConfigurableListableBeanFactory.preInstantiateSingletons         
+            ----DefaultListableBeanFactory.preInstantiateSingletons,getBean()会缓存已经加载过、单例的bean，AbstracBeanFactory中的
+                mergedBeanDefinitions存放缓存合并过的beanDefinition
                                                                                       
 ```
 ### bean的加载   
@@ -174,7 +176,7 @@ bean的注册：
 4. 在后面的finishBeanFactoryInitialization会部分实例化Bean:通过getBean()方法初始化非lazy-load的singleton的bean，它能达到bean进行加载并缓存。    
 
 bean的加载：   
- ![icon]()
+ ![icon](https://github.com/StaticWalk/blog/blob/master/images/10-6.png?raw=true)
 
 
 
