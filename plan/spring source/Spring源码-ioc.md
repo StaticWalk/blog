@@ -161,6 +161,11 @@ doGetBean
     4.1.1)doGetObejectFromFactoeyBean                                    ----
 ```
 
+CGLIB(code generation library)它可以在运行期扩展Java类与实现Java接口,多用于AOP框架的使用，例如SpringAOP为他们提供方法的interception(拦截),了解下代理模式。Hibernate用它来实现PO(Persistent Object 持久化对象)字节码的动态生成。
+CGLIB包的底层实现是使用一个小而快的字节码处理框架ASM，来转换字节码并且生成新的类。ASM需要对JVM内部结构包括class文件的格式和指令集很熟悉。    
+代理模式：为其他对象提供一种代理以控制对这个对象的访问。在某些情况下，一个对象不想或者不能直接引用另外一个对象，而代理对象可以在客户端和目标对象之间起到中介的作用。
+
+
 总结：ioc中的bean操作分两步，bean注册 -> bean加载，beanFactory全程作为bean的孵化中心，需要了解下工厂模式（是什么为什么怎么）    
 bean的注册：   
 1. 解析XML文件(XML -> Resource -> InputStream -> Document)注册BeanDefinition    
@@ -169,6 +174,9 @@ bean的注册：
 4. 在后面的finishBeanFactoryInitialization会部分实例化Bean:通过getBean()方法初始化非lazy-load的singleton的bean，它能达到bean进行加载并缓存。    
 
 bean的加载：   
+ ![icon]()
+
+
 
 
 
