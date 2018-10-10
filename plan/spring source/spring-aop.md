@@ -41,7 +41,7 @@ Ioc的parseDefaultElement/parseCustomElement                                    
 创建AOP代理：
 ```angularjs
 Ioc的doCreateBean()之前会先调用resolveBeforeInstantiation()
-    AbstractAutoProxyCreator.postProcessAfterInitialization()
+    AbstractAutoProxyCreator.           ()
     wrapIfNecessary()   
         getAdvicesAndAdvisorsForBean() 获取所有适合应用到该bean的所有advisor
         上面方法触发的findEligibleAdvisors()  Eligible合格的
@@ -50,22 +50,24 @@ Ioc的doCreateBean()之前会先调用resolveBeforeInstantiation()
                     BeanFactoryAdvisorRetrievalHelper.findAdvisorBeans()  拿到增强的执行代码
                         BeanFactoryUtils.beanNamesForTypeIncludingAncestors() 从BeanFactory中获取所有对应Advisor的类
                 BeanFactoryAspectJAdvisorsBuilder.buildAspectJAdcisors()  获取标记@AspectJ注解的类中增强     
-                1）遍历所有beanName，所有在beanFactory中注册的bean都会被提取出来 
-                2）遍历所有beanName，找出声明@Aspect注解的类，进行进一步的处理 
-                3）对标记为AspectJ注解的类进行增强的提取 
-                4）将提取结果加入缓存
+1）遍历所有beanName，所有在beanFactory中注册的bean都会被提取出来 
+2）遍历所有beanName，找出声明@Aspect注解的类，进行进一步的处理 
+3）对标记为AspectJ注解的类进行增强的提取  4）将提取结果加入缓存 
                     ReflectiveAspectJAdvisorFactory.getAdvisors()增强器的获取
                         getAdvisor()   对普通advisor的获取
+                            getPointcut()  获取切点信息
+                                AbstractAspectJAdvisorFactory.findAspectJAnnotationOnMethod() 寻找特定的注解类获取方法上的注解
+                                    findAnnotation() 获取指定方法上的注解并使用AspectJAnnotation封装
                         SyntheticInstantiationAdvisor()  同步实例化advisor保证增强使用前的实例化
                         getDeclareParentsAdvisor()    获取DeclareParents注解
             findAdvisorsThatCanApply()获取匹配的增强并应用
                  canApply()真正的匹配            
         createProxy()  创建代理(1.获取Advisor，2.根据获取的advisor进行代理)                   
-            buildAdvisors()封装拦截器为Advisor      
-                DefaultAdvisorAdapterRegistery.wrap()   
+            buildAdvisors() 封装拦截器转化为Advisor      
+                DefaultAdvisorAdapterRegistery.wrap()  根据要封装的对象类型转化为advisor
             getProxy()   
                 createAopProxy()   创建代理
-                    DefaultAopProxyFactory.createAopProxy()         
+                    DefaultAopProxyFactory.createAopProxy()     调用 
                 getProxy()   获取代理     
             JdkDynamicAopProxy.getProxy()   
                 ReflectiveMethodInvocation.proceed()   执行拦截器链的方法
@@ -75,6 +77,9 @@ Ioc的doCreateBean()之前会先调用resolveBeforeInstantiation()
                 getCallbacks()   
                 createProxyClassAndInstance()                  
 ```
+CGLIB对于方法的拦截是通过将自定义的拦截器（实现了MethodInterceptor接口）加入Callback中并在调用代理时直接激活拦截器的intercept方法实现的，那么在getCallback中实现了这样一个目的：DynamicAdvisedInterceptor继承自MethodInterceptor，加入到Callback中后，在再次调用代理时会直接调用DynamicAdvisedInterceptor中的intercept方法。 
+CGLIB方式实现的代理，其核心逻辑在DynamicAdvisedInterceptor中的intercept方法中（JDK动态代理的核心逻辑是在invoke方法中）。
+
 
 
 
