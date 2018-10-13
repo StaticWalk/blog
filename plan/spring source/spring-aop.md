@@ -41,7 +41,7 @@ Ioc的parseDefaultElement/parseCustomElement                                    
 创建AOP代理：
 ```angularjs
 Ioc的doCreateBean()之前会先调用resolveBeforeInstantiation()
-    AbstractAutoProxyCreator.           ()
+    AbstractAutoProxyCreator.postProcessAfterInitialization()
     wrapIfNecessary()   
         getAdvicesAndAdvisorsForBean() 获取所有适合应用到该bean的所有advisor
         上面方法触发的findEligibleAdvisors()  Eligible合格的
@@ -61,24 +61,33 @@ Ioc的doCreateBean()之前会先调用resolveBeforeInstantiation()
                         SyntheticInstantiationAdvisor()  同步实例化advisor保证增强使用前的实例化
                         getDeclareParentsAdvisor()    获取DeclareParents注解
             findAdvisorsThatCanApply()获取匹配的增强并应用
-                 canApply()真正的匹配            
+                 canApply()真正的匹配(处理引入增强、处理PointcutAdvisor、无切入点的始终匹配)            
         createProxy()  创建代理(1.获取Advisor，2.根据获取的advisor进行代理)                   
-            buildAdvisors() 封装拦截器转化为Advisor      
-                DefaultAdvisorAdapterRegistery.wrap()  根据要封装的对象类型转化为advisor
+            buildAdvisors() 封装拦截器转化为Advisor(AdvisorAdapterRegistry.wrap())     
+                DefaultAdvisorAdapterRegistry.wrap()  根据要封装的对象类型转化为advisor
             getProxy()   
                 createAopProxy()   创建代理
-                    DefaultAopProxyFactory.createAopProxy()     调用 
-                getProxy()   获取代理     
+                    DefaultAopProxyFactory.createAopProxy()     调用相应的代理方法 
+                getProxy()   根据情况选择获取哪种代理     
             JdkDynamicAopProxy.getProxy()   
                 ReflectiveMethodInvocation.proceed()   执行拦截器链的方法
                     invokeJoinpoint()   执行切点方法      
                         invoke()   执行拦截器方法
             CglibAopProxy.getProxy()   
                 getCallbacks()   
-                createProxyClassAndInstance()                  
+       设置拦截器，将拦截器封装在DynamicAdvisedInterceptor中，再次调用代理的时候会调用DynamicAdvisedIntercepter的intercept()
+                createProxyClassAndInstance()   生成代理类以及创建代理                 
 ```
-CGLIB对于方法的拦截是通过将自定义的拦截器（实现了MethodInterceptor接口）加入Callback中并在调用代理时直接激活拦截器的intercept方法实现的，那么在getCallback中实现了这样一个目的：DynamicAdvisedInterceptor继承自MethodInterceptor，加入到Callback中后，在再次调用代理时会直接调用DynamicAdvisedInterceptor中的intercept方法。 
+CGLIB对于方法的拦截是通过将自定义的拦截器（实现了MethodInterceptor接口）加入Callback中并在调用代理时直接激活拦截器的intercept方法实现的，那么在getCallback中实现了这样一个目的：DynamicAdvisedInterceptor继承自MethodInterceptor，加入到Callback中后，在再次调用代理时会直接调用DynamicAdvisedInterceptor中的intercept方法。    
 CGLIB方式实现的代理，其核心逻辑在DynamicAdvisedInterceptor中的intercept方法中（JDK动态代理的核心逻辑是在invoke方法中）。
+
+个人总结   
+aop是基于ioc的，包含两部分aop标签解析+创建aop代理，需要搞清楚advisor、interceptor、method、pointcut。    
+1.解析AOP标签在IOC的解析自定义标签 <aop:aspectj-autoproxy />，解析结果是在BeanFactory中注册了一个名为AnnotationAwareAspectJAutoProxyCreator的bean，用于创建AOP代理。
+2.创建AOP代理发生在IOC的createtBean中，在doCreateBean之前会先调用resolveBeforeInstantiation方法，在该方法中会调用实现了BeanPostProcessor接口的后处理的postProcessAfterInstantiation方法。
+而在解析AOP标签中注册的AnnotationAwareAspectJAutoProxyCreator便实现了BeanPostProcessor接口。AnnotationAwareAspectJAutoProxyCreator会在postProcessAfterInstantiation方法中根据定义的advisor，使用JDK动态代理或CGLIB动态代理来增强bean。
+创建AOP的脑图：http://naotu.baidu.com/file/d02f3eaca44025efd07efa91f8841749?token=95a0c6e476f4a6cd
+
 
 
 
