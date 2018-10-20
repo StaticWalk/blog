@@ -19,12 +19,19 @@ Spring Transaction事物功能模块依赖于Spring的AOP模块，由Spring tx�
 但是即便有这样的需求，也存在很多变通的方法，比如，可以将需要进行事务管理的代码块独立为方法等等。     
 解析事务标签：  
 ```angularjs
-
-AnnotationDrivenBeanDefinitionParser.parse              类似AOP标签解析，不同标签需要一个对应的BeanDefinitionParser解析器
+AnnotationDrivenBeanDefinitionParser.parse()              类似AOP标签解析，不同标签需要一个对应的BeanDefinitionParser解析器
     AopAutoProxyConfigurer.configureAutoProxyCreator()    注册了一个creator和三个支撑起整个事务功能的bean
+    AopNamespaceUtils.registerAutoProxyCreatotIfNecessary()    
+    AopConfigUtils.registerAutoProxyCreatorIfNecessary()
+    BeanFactoryTransactionAttributeSourceAdvisor() 用于对事务方法进行增强
+    与IOC的衔接
+        InfrastructureAdvisorAutoProxyCreator.postProcessAfterInstantiation
+            canApply 判断bean是否需要添加事务增强
+                matches() 匹配方法
+                    AnnotationTransactionAttributeAttributeSource,getTransactionAttribute 获取事务属性，封装
+                        computeTransactionAttribute 提取事务注解
+                            TransactionAnnotationParser.parseTransactionAnnotation 解析注解
     
-
-
 ```
 
 
