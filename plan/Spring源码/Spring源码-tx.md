@@ -4,7 +4,7 @@
 Transaction概述：   
 Spring Transaction事物功能模块依赖于Spring的AOP模块，由Spring tx模块实现。功能实现两部分，解析事物标签 + 创建事物代理。   
 解析事物标签类似AOP的标签解析，<tx:annatation driven />标签会注册InfrastructureAdvisorAutoProxyCreator类和三个bean
-(TransactionInterceptor和AnnotationTransactionAttributeSource这两个会注入BeanFactoryTransactionAttributeSourceAdvisor
+(TransactionInterceptor和AnnotationTransactionAttributeSource和TransactionAttributeSourceAdvisor这两个会注入BeanFactoryTransactionAttributeSourceAdvisor
 这个bean实现了Advisor用于对事务方法进行增强)，只要类或方法实现了@Transaction接口，就会被加入到interceptor chain,对原方
 法进行事务加强。   
 而InfrastructureAdvisorAutoProxyCreator作为一个 AbstractAutoProxyCreator，会在getBean时调用其postProcessAfterInstantiation
@@ -22,7 +22,7 @@ Spring Transaction事物功能模块依赖于Spring的AOP模块，由Spring tx�
 AnnotationDrivenBeanDefinitionParser.parse()              类似AOP标签解析，不同标签需要一个对应的BeanDefinitionParser解析器
     AopAutoProxyConfigurer.configureAutoProxyCreator()    注册了一个creator和三个支撑起整个事务功能的bean
     AopNamespaceUtils.registerAutoProxyCreatotIfNecessary()    
-    AopConfigUtils.registerAutoProxyCreatorIfNecessary()
+    AopConfigUtils.registerAutoProxyCreatorIfNecessary()   
     BeanFactoryTransactionAttributeSourceAdvisor() 用于对事务方法进行增强
     与IOC的衔接
         InfrastructureAdvisorAutoProxyCreator.postProcessAfterInstantiation
