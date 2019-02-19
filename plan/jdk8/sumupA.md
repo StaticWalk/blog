@@ -30,7 +30,7 @@ Object类常用做集合类中toArray的转化类型；
       
 &emsp;&ensp;ArrayList:  
   *	动态数组，容量自动增长,类似于c语言动态内存申请。非线程安全，只能用于单线程，
-  *	多线程通过Collection.synchronizedList(List l)返回一个线程安全的ArrayList类，或者使用concurrent并发包下的CopyOnWriteArrayList类。
+  *	多线程通过Collections.synchronizedList(List l)返回一个线程安全的ArrayList类，或者使用concurrent并发包下的CopyOnWriteArrayList类。
   *	Serializable接口，支持序列化，能序列化传输；RandomAccess接口，支持通过下标序号的快速随机访问；Cloneable接口，能被克隆。
   *	void grow(int minCapacity),容量增长，minCapacity是最小需要扩容，
   * 1.容量x1.5;	2.判断够不够minCapacity，不够取minCapacity;	3.对比MAX_ARRAY_SIZE(Integer.MAX_VALUE-8),hugeCapacity()检查溢出，返回MAX或者Integer.MAX_VALUE;4.Array.copyOf(),<T> T[] copyOf(T[] original, int newLength)
@@ -51,6 +51,6 @@ Object类常用做集合类中toArray的转化类型；
   * ArrayList实现的hasNext(),return cursor!=size();当remove()后cursor=1,size()=0,外部陷入死循环，next()中引入modCount通过checkForComodification，判断满足i>=size,抛出ConcurrentModificationException()。
   * 非线程安全的集合操作中，避免一个线程正在迭代遍历被另外的线程修改这个列表的结构，引入了
   * ConcurrentModificationException。异常原因和解决办法：
-  * 1.异常出现的原因：调用list.remove()方法导致modCount和expectedModCount的值不一致。
-  * 2.单线程下的解决办法：使用迭代器自带的iterator.remove()删除元素
-  * 3.多线程下的解决办法：1）在使用iterator迭代的时候使用synchronized或者Lock进行同步；　2）使用并发容器CopyOnWriteArrayList代替ArrayList和Vector
+      * 1.异常出现的原因：调用list.remove()方法导致modCount和expectedModCount的值不一致。
+      * 2.单线程下的解决办法：使用迭代器自带的iterator.remove()删除元素
+      * 3.多线程下的解决办法：1）在使用iterator迭代的时候使用synchronized或者Lock进行同步；　2）使用并发容器CopyOnWriteArrayList代替ArrayList和Vector
