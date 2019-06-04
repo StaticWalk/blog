@@ -22,8 +22,38 @@ Eureka Server
 2019-06-03 09:54:40.371  INFO 11184 --- [           main] c.n.e.EurekaDiscoveryClientConfiguration : Updating port to 8761
 2019-06-03 09:54:40.375  INFO 11184 --- [           main] c.t.eurekasvr.EurekaServerApplication    : Started EurekaServerApplication in 11.742 seconds (JVM running for 13.116)
 ```
-先看EurekaServerBootstrap
-
+先看日志
+EurekaServerBootstrap
 EurekaServerInitializerConfiguration 中开启一个线程调用start()来初始化 EurekaServer
 DefaultLifecycleProcessor 的doStart方法调用了 bean.start();
 
+通过@EnableEurekaServer注解验证思路：
+1.@EnableEurekaServer中import了@EurekaServerConfiguration(里面很多有全局的注释Bean Context Init Server)
+EurekaServerConfiguration中包含的Bean:
+eurekaServerBootstrap
+eurekaServerContext.initialize（DefaultEurekaServerContext.java）//主要的执行初始化逻辑
+peerEurekaNodes.start() //每10分钟执行一次服务集群数据同步
+peerAwareInstanceRegistry.init（PeerAwareInstanceRegistryImpl.java） //初始化响应缓存、心跳阈值定时任务、远程客户端
+eurekaController
+2.@EurekaServerConfiguration中import了@EurekaServerInitializerConfiguration
+
+peerAwareInstanceRegistry.OpenForTraffic() // 设置与Server的续约时间每分钟2次，更新Server状态为上电状态
+EurekaDiscoveryClientConfiguration.onApplicationEvent() //设置Server的运行端口
+
+总结：
+1、初始化Eureka环境，Eureka上下文；
+2、初始化EurekaServer的缓存
+3、启动了一些定时任务，比如充值心跳阈值定时任务，清理失效节点定时任务；
+4、更新EurekaServer上电状态，更新EurekaServer端口；
+
+
+EurekaClient如何注册到EurekaServer
+```angular2
+public class InstanceRegistry extends PeerAwareInstanceRegistryImpl
+		implements ApplicationContextAware {
+``` 
+ApplicationResource.addInstance() // 处理HTTP请求服务
+InstanceRegistry.register //通过 ApplicationContext 发布了一个事件 EurekaInstanceRegisteredEvent 服务注册事件
+PeerAwareInstanceRegistryImpl.register // 将注册方信息填入注册表（续约时间、名字、数据同步）
+AbstractInstanceRegistry.register（super） //将注册表放到内存中gMap维护，定时更新注册表和更新缓存
+PeerAwareInstanceRegistryImpl.replicateToPeers // 在服务节点之间同步信息
