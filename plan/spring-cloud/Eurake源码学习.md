@@ -1,14 +1,14 @@
 参考文章[https://segmentfault.com/a/1190000011668299],
 [https://blog.csdn.net/forezp/article/details/73017664]
 
-特点：
+Eureka特点：
 1.Eureka Server提供注册，服务注册表存储所有可用的服务节点的信息，
 2.Eureka Client是Java客户端，内置轮询算法的负载均衡器
 3.Client发的心跳30s,超时90s
 4.Server之前通过复制方式完成数据的同步
 5.Client可以访问本地的缓存表，即使server都挂掉了，仍可以利用缓存中的信息消费其他的API
 
-Eureka Server 
+Eureka Server 源码
 ```angular2
 2019-06-03 09:54:40.273  INFO 11184 --- [           main] o.s.c.support.DefaultLifecycleProcessor  : Starting beans in phase 0
 2019-06-03 09:54:40.273  INFO 11184 --- [           main] c.n.e.EurekaDiscoveryClientConfiguration : Registering application unknown with eureka with status UP
@@ -57,3 +57,14 @@ InstanceRegistry.register //通过 ApplicationContext 发布了一个事件 Eure
 PeerAwareInstanceRegistryImpl.register // 将注册方信息填入注册表（续约时间、名字、数据同步）
 AbstractInstanceRegistry.register（super） //将注册表放到内存中gMap维护，定时更新注册表和更新缓存
 PeerAwareInstanceRegistryImpl.replicateToPeers // 在服务节点之间同步信息
+replicateInstanceActionsToPeers() //节点之间的复制状态操作逻辑
+peerEurekaNode.java中方法是复制操作的核心代码  
+任务批处理：避免多次同步的调用，会导致一定的注册和下线的延迟
+TaskDispatchers.createBatchingTaskDispatcher() // 将任务添加到队列里面
+TaskExecutors.batchExecutors //
+ReplicationTaskProcessor.process(tasks) //通过 JerseyReplicationClient 客户端对象直接发送list请求数据
+JerseyReplicationClient.submitBatchUpdates(replicationList) //请求相对路径
+PeerReplicationResource.dispatch //区分action类型，区别进行复制
+
+
+Eureka Client 源码
