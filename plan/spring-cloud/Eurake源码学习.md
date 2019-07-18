@@ -1,6 +1,8 @@
 参考文章[https://segmentfault.com/a/1190000011668299],
 [https://blog.csdn.net/forezp/article/details/73017664]
 
+gateway kafka  restTemplates
+
 Eureka特点：
 1.Eureka Server提供注册，服务注册表存储所有可用的服务节点的信息，
 2.Eureka Client是Java客户端，内置轮询算法的负载均衡器

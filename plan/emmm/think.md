@@ -13,13 +13,13 @@ how to improve myself
 主要工作：
 1、通过 Redis 缓存热点数据，使用ProtoStuff 对热点数据做序列化缓解系统压力。
 2、利用 Nginx 做反向代理，使用CDN 加快静态资源的访问。
-3、Spring MVC框架做前后端交互，使用 Spring Security权限管理。
+3、Spring MVC框架做前后端交互，使用 Spring Security 权限管理。
 
 2019.5——2019.7	竞赛系统
 担任角色：后台开发
 项目描述：整合赛事发布、赛事计分、参赛报名、赛事统筹、观众讨论区的球类运动竞赛管理系统。
 项目现状：公司产品，成都市大运会需求。
 主要工作：
-1、使用 MongoDB 存储业务数据 。
+1、使用 MongoDB 存储业务数据，MySQL 存储用户数据 。
 2、利用 Nginx 做反向代理，使用CDN 加快静态资源的访问。
 3、Spring MVC框架做前后端交互，使用 Spring Security权限管理。
