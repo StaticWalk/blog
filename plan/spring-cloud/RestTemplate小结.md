@@ -1,6 +1,7 @@
 Java后台中，当需要HTTP请求其他网络资源   
 Apache的HttpClient、开源库如OkHttp、原生的HttpURLConnection  
 Spring生态中使用RestTemplate来发起HTTP请求
+特性：支持异步调用 AsyncRestTemplate，返回ListenableFuture
 ```angular2
 // get 请求
 //如果只关心返回结果用这个

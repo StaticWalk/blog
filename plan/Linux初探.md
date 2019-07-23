@@ -68,8 +68,6 @@ echo -e "\e[1;34m hello,xiongxiaoyu \e[0m"
  ctrl + z 命令后台运行    
  ctrl + r 查找历史运行命令   
  history [option] (查看历史使用过的命令，-w刷新到历史命令保存文件~/.bash_history)
- 
- 
- 
+  
    
 [//]:这是注释
