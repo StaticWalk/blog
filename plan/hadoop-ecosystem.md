@@ -9,3 +9,4 @@ startRow  limit条数
 TIMESTAMP 使用时间来精确定位数据
 多版本，每个列簇允许两个版本数据
 TTL过期
+

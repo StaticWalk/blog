@@ -43,9 +43,6 @@ dubbo:protocol 协议配置
 dubbo:
 dubbo:
 dubbo:
-dubbo:
-dubbo:
-dubbo:
 
 
 

@@ -40,3 +40,4 @@ leader选举
 * leader关闭，临时节点消失，下一个follower通过监视器获取leader移除的通知
 * 下一个f检查是否存在更小数字node，无自己成leader，否则，转移leader
  
+ java使用zk实现服务注册和服务发现
