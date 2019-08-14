@@ -40,10 +40,6 @@ Spring配置、JavaApi配置方式
 dubbo:service 服务配置
 dubbo:reference 引用配置
 dubbo:protocol 协议配置
-dubbo:
-dubbo:
-dubbo:
-
 
 
 
